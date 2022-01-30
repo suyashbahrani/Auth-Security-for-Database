@@ -52,7 +52,8 @@ mongoose.connect("mongodb://localhost:27017/userDB", {useNewUrlParser: true});
 const userSchema = new mongoose.Schema({
     email: String,
     password: String,
-    googleId: String
+    googleId: String,
+    secret: String
 });
 
 // with mongoose encrypt 
@@ -100,7 +101,7 @@ passport.use(new GoogleStrategy({
 //   User.findorCreate require mongoose function or else manually create it 
 // also it does not give passwords and authenticates for us that's really awesome
   function(accessToken, refreshToken, profile, cb) {
-    console.log(profile)
+    // console.log(profile)
     User.findOrCreate({ googleId: profile.id }, function (err, user) {
       return cb(err, user);
     });
@@ -131,11 +132,50 @@ app.get("/register", function(req,res){
 
 // get secrets file directly and see if authenticated 
 app.get("/secrets", function(req, res){
+    // if (req.isAuthenticated()){
+    //     res.render("secrets");
+    // } else {
+    //     res.redirect("/login");
+    // }
+    // login or not doesn't matter because user needs to see every secrets like facebook posts
+    // not null ne
+    User.find({"secret": {$ne: null}}, function(err, foundUser){
+        if (err){
+            console.log(err);
+        } else {
+            if (foundUser){
+                res.render("secrets", {usersWithSecrets: foundUser});
+            }
+        }
+    });
+});
+
+app.get("/submit", function(req, res){
     if (req.isAuthenticated()){
-        res.render("secrets");
+        res.render("submit");
     } else {
         res.redirect("/login");
     }
+});
+
+// req has login details for current session
+app.post("/submit", function(req, res){
+    const submittedSecret = req.body.secret;
+    // console.log(req.user.id);
+    User.findById(req.user.id, function(err, foundUser){
+        if(err){
+            console.log(err)
+        } else {
+            if (foundUser){
+                foundUser.secret = submittedSecret;
+                foundUser.save(function(){
+                    res.redirect("/secrets");
+                });
+
+            }
+        }
+    });
+
 });
 
 
