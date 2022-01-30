@@ -52,7 +52,7 @@ mongoose.connect("mongodb://localhost:27017/userDB", {useNewUrlParser: true});
 const userSchema = new mongoose.Schema({
     email: String,
     password: String,
-    googleid: String
+    googleId: String
 });
 
 // with mongoose encrypt 
@@ -100,8 +100,8 @@ passport.use(new GoogleStrategy({
 //   User.findorCreate require mongoose function or else manually create it 
 // also it does not give passwords and authenticates for us that's really awesome
   function(accessToken, refreshToken, profile, cb) {
-      console.log(profile)
-    User.findOrCreate({ googleid: profile.id }, function (err, user) {
+    console.log(profile)
+    User.findOrCreate({ googleId: profile.id }, function (err, user) {
       return cb(err, user);
     });
   }
@@ -134,7 +134,7 @@ app.get("/secrets", function(req, res){
     if (req.isAuthenticated()){
         res.render("secrets");
     } else {
-        res.redirect("register");
+        res.redirect("/login");
     }
 });
 
